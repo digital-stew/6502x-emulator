@@ -63,8 +63,27 @@ SDL_UpdateWindowSurface(window);
 
     
   ////////////////////////////////////////////code start/////////////////////////////////////////////  
-    int main(int arg, char *argv[])
+    int main(int argc, char *argv[] )  
 {
+
+        if (argc < 3 ) {
+        printf("error: missing command line arguments\n6502x <rom> <speed>\ns= faster a= slower");
+        return 1;
+    }
+
+    int timedelay = 0;
+    int debug = 0 ;
+
+    char *value;
+    value = argv[2]; // how often is the screen drawn
+   timedelay += atoi(value);
+
+   // if (argc = 3){ // delay in seconds between ticks
+  //     value = argv[3];
+  //      debug += atoi(value);
+  //  }
+
+
 
     window = SDL_CreateWindow("SDL2 Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
     if (!window)
@@ -80,11 +99,12 @@ ifstream myFile (argv[1], ios::in | ios::binary);
 myFile.read (rom, 0xffff);
 myFile.close();
 
+/*
 ifstream inFile2; 
 ifstream myFile2 ("full_screen.data", ios::in | ios::binary);
 myFile2.read (gpudata, 0x3fff);
 myFile2.close();
-/* load into rom space only
+ load into rom space only
 uint16_t temp = 0xc000; //location in cpuram to put rom
 for (int i = 0; i <= 0x3fff; i++){ //3fff max rom size
 cpuram[temp] = rom[i];
@@ -112,7 +132,7 @@ programCounter++;
 uint8_t addressHighByte = cpuram[programCounter];
 programCounter = (addressHighByte<<8)+addressLowByte;
 
-int refreshScreenDelay = 10;
+int refreshScreenDelay = 0;
 uint8_t currentInst = 0;
 printf("start\nprogramcounter = %x \n",programCounter);
 
@@ -120,6 +140,7 @@ printf("start\nprogramcounter = %x \n",programCounter);
     {
 
         currentInst = cpuram[programCounter];
+
    printf("IR=%x (z=%x c=%x) PC=%x a=%x y=%x x=%x \n",currentInst,(statusRegister & 0b00000010)>>1,(statusRegister & 0b00000001),programCounter,a,y,x);
     printf("0000: %x %x %x %x %x %x %x %x   %x %x %x %x %x %x %x %x\n",
              cpuram[0], cpuram[1], cpuram[2], cpuram[3], cpuram[4], cpuram[5], cpuram[6], cpuram[7],
@@ -1270,16 +1291,54 @@ printf("start\nprogramcounter = %x \n",programCounter);
     printf("0100: %x %x %x %x %x %x %x %x   %x %x %x %x %x %x %x %x\n\n",
              cpuram[0x01f0], cpuram[0x01f1], cpuram[0x01f2], cpuram[0x01f3], cpuram[0x01f4], cpuram[0x01f5], cpuram[0x01f6], cpuram[0x01f7],
             cpuram[0x01f8], cpuram[0x01f9], cpuram[0x01fa], cpuram[0x1fb], cpuram[0x01fc], cpuram[0x01fd], cpuram[0x01fe], cpuram[0x01ff]);
-        if (refreshScreenDelay == 0){   
-         
-       //sleep(0.1);
-        refreshScreenDelay = 1000;
-        }
- 
-drawscreen();
-        refreshScreenDelay--;
+       
         
-    
+        if (refreshScreenDelay == 0){   
+         drawscreen();      
+        refreshScreenDelay = timedelay ;
+        }
+        if (refreshScreenDelay > 0) refreshScreenDelay--;
+        sleep(debug);
+
+//handle keyboard input
+	SDL_Event e;
+	while( SDL_PollEvent( &e ) != 0 ) {
+		switch (e.type) {
+			
+
+            case SDL_QUIT:
+				return false;
+			case SDL_KEYDOWN:
+			    switch ( e.key.keysym.sym ) {
+					case SDLK_q:
+                        return 0; 
+						break;
+					case SDLK_a:
+                        timedelay = timedelay - 1;
+						break;
+					case SDLK_s:
+                        timedelay = timedelay + 1;
+						break;                        
+					// etc
+				}
+				
+				break;
+			case SDL_KEYUP:  
+                       
+				// can also test individual keys, modifier flags, etc, etc.
+				break;
+			case SDL_MOUSEMOTION:
+				// etc.
+				break;
+		}
+	}
+
+
+
+
+
+
+
     }
     
 }
