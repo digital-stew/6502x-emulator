@@ -18,7 +18,7 @@ uint8_t stackPointer = 0xff;
 uint16_t programCounter = 0xfffc;
 uint16_t address16bit = 0;
 uint8_t address = 0;
-
+bool singlemode = 0;
 
   void drawscreen(){
     SDL_Rect rec;
@@ -67,7 +67,7 @@ SDL_UpdateWindowSurface(window);
 {
 
         if (argc < 3 ) {
-        printf("error: missing command line arguments\n6502x <rom> <speed>\ns= faster a= slower");
+        printf("error: missing command line arguments\n6502x <rom> <speed>\n x: faster\n z: slower\n s: single step mode\n r: next instruction\n");
         return 1;
     }
 
@@ -1300,8 +1300,43 @@ printf("start\nprogramcounter = %x \n",programCounter);
         if (refreshScreenDelay > 0) refreshScreenDelay--;
         sleep(debug);
 
+
+
+
+
+
 //handle keyboard input
-	SDL_Event e;
+	
+    if (singlemode == 1) {
+        SDL_Event a;
+        bool run = 0 ;
+        while(  run == 0 ) { 
+          SDL_WaitEvent( &a ) ;  
+            switch (a.type) {
+                case SDL_QUIT:
+                    return 0;
+                case SDL_KEYDOWN:
+                    switch ( a.key.keysym.sym ) {
+                        case SDLK_q:
+                            return 0; 
+                            break;
+                        case SDLK_s:
+                            singlemode = 0;
+                            run = 1;
+                            break;
+                        case SDLK_r:
+                            drawscreen();
+                            singlemode = 1;
+                            run = 1;
+                            break;                       
+                        // etc
+                    }                   
+                break;				
+            }	
+        }
+    }
+
+   SDL_Event e;
 	while( SDL_PollEvent( &e ) != 0 ) {
 		switch (e.type) {
 			
@@ -1313,11 +1348,14 @@ printf("start\nprogramcounter = %x \n",programCounter);
 					case SDLK_q:
                         return 0; 
 						break;
-					case SDLK_a:
+					case SDLK_z:
                         timedelay = timedelay - 1;
 						break;
-					case SDLK_s:
+					case SDLK_x:
                         timedelay = timedelay + 1;
+						break;
+					case SDLK_s:
+                        singlemode = 1;
 						break;                        
 					// etc
 				}
@@ -1327,7 +1365,7 @@ printf("start\nprogramcounter = %x \n",programCounter);
                        
 				// can also test individual keys, modifier flags, etc, etc.
 				break;
-			case SDL_MOUSEMOTION:
+			//case SDL_MOUSEMOTION:
 				// etc.
 				break;
 		}
